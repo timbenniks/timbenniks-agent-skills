@@ -36,7 +36,9 @@ If the user already provided answers, restate and confirm before proceeding.
 5. Translate the idea into concrete API/SDK/docs implications
 6. Define success metrics (leading + lagging)
 7. Propose a rollout and adoption plan (phased + comms)
-8. Call out assumptions, risks, and open questions if inputs are missing
+8. Write the PRD file
+   - Save the full output to `devex-prd.md`
+9. Call out assumptions, risks, and open questions if inputs are missing
 
 ## Quality bar (DevEx-grade)
 
@@ -48,6 +50,8 @@ If the user already provided answers, restate and confirm before proceeding.
 - Keep the document crisp; avoid generic product-speak
 
 ## Output format (required)
+
+Write the full output to `devex-prd.md`. In chat, provide a brief summary and point to the file.
 
 1. Problem framing
    - Context and why now
@@ -94,3 +98,4 @@ Output is correct only if:
 - Success metrics are measurable
 - API/SDK/docs implications are actionable
 - Rollout plan addresses adoption and migration
+- `devex-prd.md` was written with the full PRD
