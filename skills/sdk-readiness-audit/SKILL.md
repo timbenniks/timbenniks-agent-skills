@@ -45,7 +45,9 @@ If the user already provided answers, restate and confirm.
    - Refactors with priority
    - "If we shipped an SDK today" pain points
    - Suggested OpenAPI fixes and x-* extensions
-5. Call out unknowns
+5. Write the audit file
+   - Save the full output to `sdk-readiness-audit.md`
+6. Call out unknowns
    - List missing or ambiguous areas that block full confidence
 
 ## Scoring rubric (0 to 5)
@@ -79,6 +81,8 @@ Overall score (0 to 100):
 - If any critical category (auth, errors, pagination) is <= 2, cap overall at 59 and label "not ready"
 
 ## Output format (required)
+
+Write the full output to `sdk-readiness-audit.md`. In chat, provide a brief summary and point to the file.
 
 1. Readiness verdict
    - Ready / Borderline / Not ready
@@ -141,3 +145,4 @@ Output is correct only if:
 - Pain points are clearly stated
 - OpenAPI fixes or x-* extensions are suggested where relevant
 - Unknowns are explicitly listed when information is missing
+- `sdk-readiness-audit.md` was written with the full audit
