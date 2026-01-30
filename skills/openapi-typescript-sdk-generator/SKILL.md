@@ -10,7 +10,8 @@ Behave like a real SDK generator, not a thin OpenAPI wrapper.
 
 ## Scope and guarantees
 
-- Propose sensible defaults
+- **Analyze the OpenAPI spec first** to propose intelligent defaults based on its contents
+- Propose sensible defaults derived from the spec (title, servers, security schemes, operations, etc.)
 - Ask required questions and require explicit confirmation
 - Derive human-friendly method names from context, not OpenAPI identifiers
 - Produce deterministic output
@@ -41,25 +42,48 @@ Example prefill:
 
 Either `openapi_url` or `openapi_path` must be provided or collected.
 
+## Spec analysis (mandatory first step)
+
+Before asking any questions, the agent must:
+
+1. Load and parse the OpenAPI spec (from URL or file path)
+2. Analyze the spec to extract:
+   - `info.title` → for package/client naming
+   - `info.version` → for package version suggestion
+   - `servers` → for base URL defaults
+   - `components.securitySchemes` → for auth method defaults
+   - `security` (global and per-operation) → for auth method analysis
+   - Operation patterns → for naming style suggestions
+   - Response headers → for rate limiting/caching hints
+   - Operation methods → for runtime target suggestions
+3. Propose defaults based on this analysis
+4. Show reasoning for each proposed default
+
 ## Mandatory interaction flow
 
-1. Ask all required intake questions in one concise block.
-2. Show defaults for every question.
-3. Require explicit confirmation of answers or defaults.
-4. Show a naming preview and allow overrides.
-5. Ask for a final confirmation gate before any code generation.
+1. **Parse and analyze the OpenAPI spec first** (if provided or collected)
+   - Load the spec from URL or file path
+   - Analyze the spec to propose intelligent defaults
+   - Extract relevant information (title, servers, security schemes, operations, etc.)
+2. Ask all required intake questions in one concise block.
+3. **Show defaults for every question, proposing values derived from the OpenAPI spec analysis**
+4. Require explicit confirmation of answers or defaults.
+5. Show a naming preview and allow overrides.
+6. Ask for a final confirmation gate before any code generation.
 
 Do not generate code until the user explicitly confirms.
 
 ## Required intake questions (always ask)
 
-Ask these questions in a single block and show defaults.
+Ask these questions in a single block and show defaults **proposed from the OpenAPI spec analysis**.
 
 1. SDK identity
    - Package name  
-     Default: `openapi-sdk`
+     Default: derive from OpenAPI `info.title` (sanitized, lowercased, kebab-case), or `openapi-sdk` if unavailable
+     Example: `"Pet Store API"` → `@pet-store/api-sdk` or `pet-store-api-sdk`
    - Exported client name  
-     Default: `ApiClient`
+     Default: derive from OpenAPI `info.title` (sanitized, PascalCase + "Client"), or `ApiClient` if unavailable
+     Example: `"Pet Store API"` → `PetStoreClient`
 
 2. Output
    - Output mode: `folder_only` or `standalone_package`  
@@ -94,7 +118,9 @@ Ask these questions in a single block and show defaults.
    - OAuth2 access token (passthrough only)
    - Basic auth
    - None  
-     Default: first security scheme in the spec, or `none` if none exist
+     Default: analyze OpenAPI `security` and `components.securitySchemes` to propose the most common/primary auth method, or `none` if none exist
+     - If multiple schemes exist, prefer: Bearer > API Key > OAuth2 > Basic > None
+     - Show which operations use which auth methods if they differ
 
 8. Integration tests
    - Yes, generate real integration tests (env-based, disabled by default)
@@ -376,17 +402,22 @@ Output is correct only if:
 - Optional integration tests are safe and documented
 - Output is deterministic
 
-## Defaults (if confirmed)
+## Defaults (proposed from OpenAPI spec analysis)
 
-- Naming style: verb-first
-- Output mode: folder_only
-- Output path: sdk/
-- Package name: openapi-sdk
-- Client name: ApiClient
-- Base URL: first OpenAPI server
-- Runtime target: node_and_browser
-- Node version: 22
-- Cache enabled for GET
-- Retries enabled for idempotent methods
-- Rate limiting enabled
-- Integration tests disabled
+The agent must analyze the OpenAPI spec and propose intelligent defaults:
+
+- **Package name**: Derive from `info.title` (sanitized, kebab-case), fallback to `openapi-sdk`
+- **Client name**: Derive from `info.title` (sanitized, PascalCase + "Client"), fallback to `ApiClient`
+- **Base URL**: First entry in OpenAPI `servers` array, or empty string with warning if none
+- **Auth method**: Analyze `security` and `components.securitySchemes` to propose primary method (prefer: Bearer > API Key > OAuth2 > Basic > None)
+- **Naming style**: verb-first (unless spec patterns suggest resource-first)
+- **Output mode**: folder_only
+- **Output path**: sdk/ (or derive from package name if standalone_package)
+- **Runtime target**: node_and_browser (analyze operations to suggest if browser-only or node-only would be more appropriate)
+- **Node version**: 22
+- **Cache enabled**: For GET requests (analyze spec to see if caching headers are used)
+- **Retries**: Enabled for idempotent methods (analyze operations to determine idempotency)
+- **Rate limiting**: Enabled (check if spec includes rate limit headers/documentation)
+- **Integration tests**: Disabled
+
+Always show the reasoning behind each proposed default based on the spec analysis.
